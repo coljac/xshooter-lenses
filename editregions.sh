@@ -10,6 +10,7 @@ if [ "$2" != "" ]; then
     band=$2
 fi
 for f in `cat $1|cut -d, -f2|grep -v name`; do
+    opends9=1
     if [ -e $output/$f.reg ] 
     then
         continue
@@ -24,9 +25,13 @@ for f in `cat $1|cut -d, -f2|grep -v name`; do
         # ./ds9.sh $f $band "mode 99.5" &
         ra=`grep $f $1|cut -d, -f3`
         dec=`grep $f $1|cut -d, -f4`
-        ds9 fits/1024/${f}_${band}.fits -regions regions/${f}.reg -zoom 4 -scale `echo $scale` -geometry 1100x1100+300+100 -frame center -pan to $ra $dec wcs -mode region &
-        pid=$!
-        sleep 1
+        if [ "$opends9" == "1" ]
+        then
+            ds9 fits/1024/${f}_${band}.fits -regions regions/${f}.reg -zoom 4 -scale `echo $scale` -geometry 1100x1100+300+100 -frame center -pan to $ra $dec wcs -mode region &
+            pid=$!
+            sleep 1
+        fi
+        opends9=1
 
         # xpaset -p ds9 scale zscal
         # eog -f fits/100/$f.png &
@@ -51,14 +56,20 @@ for f in `cat $1|cut -d, -f2|grep -v name`; do
         elif [ "$task" == "g" ]
         then
             band=g
-        else
+        elif [ "$task" == "i" ]
+        then
+            feh fits/100/$f.png &
+            opends9=0
+        elif [ "$task" == "s" ]
+        then
             targetdone=1
             xpaset -p ds9 regions system wcs
             xpaset -p ds9 regions save $output/$f.reg
             xpaset -p ds9 quit
             # killall eog
+        else
+            opends9=0
         fi
-
     done
 done
 
