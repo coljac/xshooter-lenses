@@ -925,7 +925,7 @@ def optimise_observation(lens, # dictionary
         skip_stars = kwargs['skip_stars']
 
         stars = starutils.do_stars(lens, ra, dec, distance=distance, mag_min=mag_min, mag_max=mag_max)
-        if len(stars) <= skip_stars:
+        if stars is not None and len(stars) <= skip_stars:
             stars = None
 
         if stars is not None:
