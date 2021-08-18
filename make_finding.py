@@ -15,7 +15,7 @@ import argparse
 # fitsdir =  "/home/coljac/dev/science/slits/finding/fits"
 # regions_dir =  "/home/coljac/dev/science/slits/regions/fixed3"
 # regions_dir =  "/home/coljac/work/proposals/xshooter/2020A/targets/xshooter/region_files"
-runid = "105.20KF.001"
+runid = "108"
 piname = "S. Lopez"
 fnt = ImageFont.truetype('/home/coljac/.local/share/fonts/arial.ttf', 24)
 # outputdir = "/home/coljac/work/proposals/xshooter/2020A/targets/xshooter/finding_charts/"
@@ -40,7 +40,7 @@ def get_slit_location(regions, index=1):
     return None
 
 def make_chart(name, output_file=None, outputdir=".", target_type="lens", scale="mode 99", size=768, fitsdir="fits", 
-        regions_dir="."):
+        regions_dir=".", suffix="_tbar"):
 
     # starmags = pd.read_csv("/home/coljac/Dropbox/Data/Development/science/slits/starmags.csv")
     # this_mag = starmags[starmags['name'] == name]
@@ -56,10 +56,10 @@ def make_chart(name, output_file=None, outputdir=".", target_type="lens", scale=
     d.set(f"height {size}")
     
     fits = f"{fitsdir}/1024/{name}_g.fits"
-    region_file = f"{regions_dir}/{name}.reg"
+    region_file = f"{regions_dir}/{name}{suffix}.reg"
 
     if not os.path.exists(region_file):
-        print(f"Region file for {name} is not ready. Skipping...")
+        print(f"Region file {region_file} for {name} is not ready. Skipping...")
         return
     regions = pyregion.open(region_file)
     slit_locations = {}
@@ -145,6 +145,7 @@ def omain(argv):
             make_chart(i, target=target, 
                    scale=scale, 
                    size = size,
+                   regions_dir=regions_dir,
                    outputdir=outputdir)
 
 def main(argv):
@@ -155,10 +156,12 @@ def main(argv):
     parser.add_argument("--output-dir", "-o", type=str, default=".", help="Target names (list or file)")
     parser.add_argument("--fits-dir", "-f", type=str, default="fits", help="Location of FITS files")
     parser.add_argument("--regions-dir", "-r", type=str, default=".", help="Location of region files")
+    parser.add_argument("--regions-suffix", type=str, default="", help="Append to region file name")
     args = parser.parse_args()
 
     if args.targets is None:
-        targets = [x.replace(".reg", "") for x in glob.glob(f"{args.regions_dir}/*.reg")]
+        targets = [x.replace(f"{args.regions_suffix}.reg", "").split("/")[-1] for x in glob.glob(f"{args.regions_dir}/*.reg")]
+                
     else:
         if os.path.exists(args.targets):
             targets = ct.fal(args.targets)
@@ -170,8 +173,10 @@ def main(argv):
             print(f"Making chart for {target}, {target_type}")
             make_chart(target,
                     target_type=target_type,
+                    regions_dir=args.regions_dir,
                     scale=args.scale_mode,
                     size=args.image_size,
+                    suffix=args.regions_suffix,
                     fitsdir=args.fits_dir,
                     outputdir=args.output_dir)
 
