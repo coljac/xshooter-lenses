@@ -154,10 +154,11 @@ def main(argv):
     parser.add_argument("--targets", "-t", type=str, required=False, help="Target names (list or file)")
     parser.add_argument("--output-dir", "-o", type=str, default=".", help="Target names (list or file)")
     parser.add_argument("--fits-dir", "-f", type=str, default="fits", help="Location of FITS files")
+    parser.add_argument("--regions-dir", "-r", type=str, default=".", help="Location of region files")
     args = parser.parse_args()
 
     if args.targets is None:
-        targets = [x.replace(".reg", "") for x in glob.glob("*.reg")]
+        targets = [x.replace(".reg", "") for x in glob.glob(f"{args.regions_dir}/*.reg")]
     else:
         if os.path.exists(args.targets):
             targets = ct.fal(args.targets)
